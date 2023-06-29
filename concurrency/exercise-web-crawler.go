@@ -59,7 +59,7 @@ func main() {
 	visited := Set[string]{m: make(map[string]bool)}
 	bad := Set[string]{m: make(map[string]bool)}
 	Crawl("https://golang.org/", 4, fetcher, &visited, &bad)
-	time.Sleep(time.Second)
+	time.Sleep(time.Duration(1) * time.Second)
 }
 
 // fakeFetcher is Fetcher that returns canned results.
