@@ -17,6 +17,10 @@ type Set[T comparable] struct {
 	m  map[T]bool
 }
 
+func NewSet[T comparable]() *Set[T] {
+	return &Set[T]{m: make(map[T]bool)}
+}
+
 func (s *Set[T]) Add(val T) {
 	s.mu.Lock()
 	s.m[val] = true
@@ -30,13 +34,15 @@ func (s *Set[T]) Contains(val T) bool {
 	return exists
 }
 
+var visited *Set[string]
+
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
-func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string]) {
+func Crawl(url string, depth int, fetcher Fetcher) {
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
 	// This implementation doesn't do either:
-	if depth <= 0 {
+	if depth <= 0 || visited.Contains(url) {
 		return
 	}
 	body, urls, err := fetcher.Fetch(url)
@@ -47,16 +53,16 @@ func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string]) {
 	}
 	fmt.Printf("found: %s %q\n", url, body)
 	for _, u := range urls {
-		if !visited.Contains(u) {
-			go Crawl(u, depth-1, fetcher, visited)
+		if !visited.Contains(u) && depth > 1 {
+			go Crawl(u, depth-1, fetcher)
 		}
 	}
 	return
 }
 
 func main() {
-	visited := Set[string]{m: make(map[string]bool)}
-	Crawl("https://golang.org/", 4, fetcher, &visited)
+	visited = NewSet[string]()
+	Crawl("https://golang.org/", 4, fetcher)
 	time.Sleep(time.Duration(1) * time.Second)
 }
 
