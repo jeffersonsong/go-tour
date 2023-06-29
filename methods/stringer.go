@@ -2,6 +2,14 @@ package main
 
 import "fmt"
 
+/*
+Defined in fmt pkg
+
+type Stringer interface {
+    String() string
+}
+*/
+
 type Person struct {
 	Name string
 	Age  int

@@ -9,25 +9,38 @@ type List[T any] struct {
 	val  T
 }
 
-func NewList[T any](val T) *List[T] {
-	return &List[T]{nil, val}
+func NewList[T any]() *List[T] {
+	return &List[T]{next: nil}
 }
 
-func (l *List[T]) AddFirst(val T) *List[T] {
-	return &List[T]{l, val}
-}
-
-func (l *List[T]) Add(val T) *List[T] {
+func (l *List[T]) Add(val T) bool {
 	if l == nil {
-		return &List[T]{nil, val}
+		return false
 	}
 	curr := l
 	for curr.next != nil {
 		curr = curr.next
 	}
 
-	curr.next = &List[T]{nil, val}
-	return l
+	curr.next = &List[T]{val: val}
+	return true
+}
+
+func (l *List[T]) Get(index int) (val T, ok bool) {
+	if l == nil {
+		return val, false
+	}
+
+	curr := l
+	for i := 0; curr != nil && i < index; i++ {
+		curr = curr.next
+	}
+
+	if curr != nil {
+		return curr.val, true
+	} else {
+		return val, false
+	}
 }
 
 func (l *List[T]) RemoveFirst(filter func(val T) bool) (list *List[T], ok bool) {
@@ -49,39 +62,12 @@ func (l *List[T]) RemoveFirst(filter func(val T) bool) (list *List[T], ok bool) 
 	return l, false
 }
 
-func (l *List[T]) Size() int {
-	size := 0
+func (l *List[T]) Len() int {
+	len := 0
 	for curr := l; curr != nil; curr = curr.next {
-		size++
+		len++
 	}
-	return size
-}
-
-func (l *List[T]) Get(index int) (val T, ok bool) {
-	if l == nil {
-		return val, false
-	}
-
-	curr := l
-	for i := 0; curr != nil && i < index; i++ {
-		curr = curr.next
-	}
-
-	if curr != nil {
-		return curr.val, true
-	} else {
-		return val, false
-	}
-}
-
-func (l *List[T]) Reverse() *List[T] {
-	if l == nil {
-		return l
-	} else if l.next != nil {
-		return l.next.Reverse().Add(l.val)
-	} else {
-		return &List[T]{nil, l.val}
-	}
+	return len
 }
 
 func (l *List[T]) String() string {
@@ -92,6 +78,19 @@ func (l *List[T]) String() string {
 		return fmt.Sprintf("%v", l.val)
 	default:
 		return fmt.Sprintf("%v,%v", l.val, l.next)
+	}
+}
+
+func (l *List[T]) Reverse() (head *List[T], tail *List[T]) {
+	if l == nil {
+		return l, l
+	} else if l.next != nil {
+		head2, tail2 := l.next.Reverse()
+		tail2.next = &List[T]{val: l.val}
+		return head2, tail2.next
+	} else {
+		head2 := &List[T]{nil, l.val}
+		return head2, head2
 	}
 }
 
@@ -118,9 +117,13 @@ func Map[T any, U any](l *List[T], transform func(val T) U) *List[U] {
 }
 
 func main() {
-	list := NewList(1).Add(2).Add(3).Add(4)
+	list := NewList[int]()
+	list.Add(1)
+	list.Add(2)
+	list.Add(3)
+	list.Add(4)
 	fmt.Println("list: ", list)
-	fmt.Println("size: ", list.Size())
+	fmt.Println("len: ", list.Len())
 	val, ok := list.Get(0)
 	if ok {
 		fmt.Println("list[0] = ", val)
@@ -140,7 +143,7 @@ func main() {
 		fmt.Println("list[4] not found")
 	}
 
-	reversed := list.Reverse()
+	reversed, _ := list.Reverse()
 	fmt.Println("reversed: ", reversed)
 
 	equals3 := func(val int) bool { return val == 3 }

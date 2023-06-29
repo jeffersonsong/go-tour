@@ -32,7 +32,7 @@ func (s *Set[T]) Contains(val T) bool {
 
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth.
-func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string], bad *Set[string]) {
+func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string]) {
 	// TODO: Fetch URLs in parallel.
 	// TODO: Don't fetch the same URL twice.
 	// This implementation doesn't do either:
@@ -40,16 +40,15 @@ func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string], bad *Se
 		return
 	}
 	body, urls, err := fetcher.Fetch(url)
+	visited.Add(url)
 	if err != nil {
 		fmt.Println(err)
-		bad.Add(url)
 		return
 	}
-	visited.Add(url)
 	fmt.Printf("found: %s %q\n", url, body)
 	for _, u := range urls {
-		if !visited.Contains(u) && !bad.Contains(u) {
-			go Crawl(u, depth-1, fetcher, visited, bad)
+		if !visited.Contains(u) {
+			go Crawl(u, depth-1, fetcher, visited)
 		}
 	}
 	return
@@ -57,8 +56,7 @@ func Crawl(url string, depth int, fetcher Fetcher, visited *Set[string], bad *Se
 
 func main() {
 	visited := Set[string]{m: make(map[string]bool)}
-	bad := Set[string]{m: make(map[string]bool)}
-	Crawl("https://golang.org/", 4, fetcher, &visited, &bad)
+	Crawl("https://golang.org/", 4, fetcher, &visited)
 	time.Sleep(time.Duration(1) * time.Second)
 }
 

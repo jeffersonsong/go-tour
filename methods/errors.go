@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+/*
+built-in interface
+type error interface {
+    Error() string
+}
+*/
+
 type MyError struct {
 	When time.Time
 	What string
