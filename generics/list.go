@@ -63,11 +63,11 @@ func (l *List[T]) RemoveFirst(filter func(val T) bool) (list *List[T], ok bool) 
 }
 
 func (l *List[T]) Len() int {
-	len := 0
+	size := 0
 	for curr := l; curr != nil; curr = curr.next {
-		len++
+		size++
 	}
-	return len
+	return size
 }
 
 func (l *List[T]) String() string {
